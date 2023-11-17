@@ -2,7 +2,8 @@ from flask import Flask, jsonify, request, send_file
 import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objs as go
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 import pandas as pd
 import io
@@ -40,35 +41,37 @@ def upload():
 
     if file:
         # Cargar el archivo CSV en un DataFrame de pandas
-        ratings = pd.read_csv(file)
+        fifa20 = pd.read_csv(file)
 
-        # Crear la gráfica Plotly
-        data = ratings['rating'].value_counts().sort_index(ascending=False)
+        
 
-        trace = go.Bar(
-            x=data.index,
-            text=['{:.1f} %'.format(val) for val in (data.values / ratings.shape[0] * 100)],
-            textposition='auto',
-            textfont=dict(color='#000000'),
-            y=data.values,
-        )
+    fifa20_3 = fifa20[["age", "height_cm", "weight_kg", "overall", "potential", "value_eur", "wage_eur",
+                           "power_jumping", "power_long_shots", "skill_moves", "shooting", "passing", "dribbling",
+                           "mentality_vision", "movement_agility"]]
 
-        # Crear el diseño del gráfico
-        layout = dict(title='Distribution Of {} ratings'.format(ratings.shape[0]),
-                      xaxis=dict(title='Rating'),
-                      yaxis=dict(title='Count'))
+    # Calcular la matriz de correlación
+    corr = fifa20_3.corr()
 
-        # Convertir la figura de Plotly en una imagen PNG
-        fig = go.Figure(data=[trace], layout=layout)
+    # Crear un mapa de calor con Seaborn
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
 
-        # Guardar la figura como imagen en Redis
-        img_binary = fig.to_image(format='png')
-        redis_conn.set('ratings_image', img_binary)
+    # Guardar la figura en un buffer de bytes
+    img_buf = io.BytesIO()
+    plt.savefig(img_buf, format='png')
+    img_buf.seek(0)
+    plt.close()
 
-        # Retornar el contenido binario de la imagen y su tipo MIME
-        return send_file(io.BytesIO(img_binary), mimetype='image/png')
+    # Retornar el contenido binario de la imagen y su tipo MIME
+    return send_file(img_buf, mimetype='image/png')
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+
+
+
 
 
 

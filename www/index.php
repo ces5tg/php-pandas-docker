@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["file"])) {
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $post_data,
     );
-
+    
     // Inicializar cURL y ejecutar la solicitud
     $curl = curl_init();
     curl_setopt_array($curl, $curl_options);
@@ -155,6 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["file"])) {
     </section>
     <br>
     <section>
+      
     <div>
           <?php if($response){
        echo '<img src="data:image/png;base64,' . base64_encode($response) . '" alt="Imagen" style="max-width: 100%; height: auto;">';
